@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// estacionamento.entity.ts
+model Estacionamento {
+  id                          Int                         @id @default(autoincrement())
+  capacidade                  Int
+  senha                       String?                     @unique
+  configuracao_estacionamento ConfiguracaoEstacionamento?
+  veiculos                    Veiculo[]
+}
+
+// configuracao-estacionamento.entity.ts
+model ConfiguracaoEstacionamento {
+  estacionamento_id Int             @id @default(autoincrement())
+  capacidade        Int
+  senha             String          @unique
+  estacionamento    Estacionamento  @relation(fields: [estacionamento_id], references: [id])
+  tabela_valores    TabelaValores[]
+}
+
+// tabela-valores.entity.ts
+model TabelaValores {
+  id                             Int                        @id @default(autoincrement())
+  intervalo                      String                     @unique
+  valor                          Float
+  configuracao_estacionamento_id Int
+  configuracao_estacionamento    ConfiguracaoEstacionamento @relation(fields: [configuracao_estacionamento_id], references: [estacionamento_id])
+}
+
+// veiculo.entity.ts
+model Veiculo {
+  id                      Int                @id @default(autoincrement())
+  placa                   String             @unique
+  ticket                  String?
+  horario_entrada         DateTime
+  horario_saida           DateTime?
+  pagou_fracao_30_minutos Boolean
+  pagou_algum_periodo     Boolean
+  estacionamento_id       Int
+  estacionamento          Estacionamento     @relation(fields: [estacionamento_id], references: [id])
+  HistoricoVeiculos       HistoricoVeiculos?
+}
+
+// historico-veiculos.entity.ts
+model HistoricoVeiculos {
+  id              Int       @id @default(autoincrement())
+  placa           String    @unique
+  data_acesso     DateTime?
+  horario_entrada DateTime
+  horario_saida   DateTime?
+  valor_pago      Float
+  ticket          String
+  veiculo_id      Int       @unique
+  veiculo         Veiculo   @relation(fields: [veiculo_id], references: [id])
+}
